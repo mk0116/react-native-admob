@@ -7,6 +7,9 @@
 #import "RCTUtils.h"
 #endif
 
+#import <AdColonyAdapter/AdColonyAdapter.h>
+#import <AppLovinAdapter/AppLovinAdapter.h>
+
 static NSString *const kEventAdLoaded = @"interstitialAdLoaded";
 static NSString *const kEventAdFailedToLoad = @"interstitialAdFailedToLoad";
 static NSString *const kEventAdOpened = @"interstitialAdOpened";
@@ -59,7 +62,7 @@ RCT_EXPORT_METHOD(setTestDevices:(NSArray *)testDevices)
     _testDevices = RNAdMobProcessTestDevices(testDevices, kGADSimulatorID);
 }
 
-RCT_EXPORT_METHOD(requestAd:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(requestAd:(NSString*)userId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     _requestAdResolve = nil;
     _requestAdReject = nil;
@@ -73,6 +76,15 @@ RCT_EXPORT_METHOD(requestAd:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
 
         GADRequest *request = [GADRequest request];
         request.testDevices = _testDevices;
+
+        GADMAdapterAdColonyExtras *extras = [[GADMAdapterAdColonyExtras alloc] init];
+        extras.userId = userId;
+        [request registerAdNetworkExtras:extras];
+
+        GADMAdapterAppLovinExtras * extras2 = [[GADMAdapterAppLovinExtras alloc] init];
+        extras2.muteAudio = NO;
+        [request registerAdNetworkExtras:extras2];
+
         [_interstitial loadRequest:request];
     } else {
         reject(@"E_AD_ALREADY_LOADED", @"Ad is already loaded.", nil);
